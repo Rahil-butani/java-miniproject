@@ -2,6 +2,9 @@ package model;
 
 import model.annotation.Id;
 import model.annotation.Positive;
+import exception.InvalidAmountException;
+import exception.InsufficientFundsException;
+import exception.BankException;
 
 public abstract class Account implements Transactable, InterestBearing {
     @Id
@@ -29,19 +32,36 @@ public abstract class Account implements Transactable, InterestBearing {
     }
     
     @Override
-    public void deposit(long amount) {
-        if (amount > 0) {
-            balance += amount;
+    public void deposit(long amount) throws InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Amount must be positive");
         }
+        balance += amount;
     }
     
     @Override
-    public boolean withdraw(long amount) {
-        if (amount > 0 && canWithdraw(amount)) {
-            balance -= amount;
-            return true;
+    public boolean withdraw(long amount) throws InsufficientFundsException, InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Amount must be positive");
         }
-        return false;
+        if (!canWithdraw(amount)) {
+            long shortfall = amount - balance;
+            if (shortfall < 0) shortfall = amount;
+            throw new InsufficientFundsException("Insufficient funds", shortfall);
+        }
+        balance -= amount;
+        return true;
+    }
+    
+    public void transfer(Account to, long amount) throws BankException {
+        try {
+            this.withdraw(amount);
+            to.deposit(amount);
+        } catch (BankException e) {
+            throw e;
+        } finally {
+            System.out.println("Transfer attempt completed");
+        }
     }
     
     public abstract boolean canWithdraw(long amount);
