@@ -1,12 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import model.annotation.Id;
 import model.annotation.Positive;
 import exception.InvalidAmountException;
 import exception.InsufficientFundsException;
 import exception.BankException;
 
-public abstract class Account implements Transactable, InterestBearing {
+public abstract class Account implements Transactable, InterestBearing, Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
     private final String accountNumber;
     private String ownerName;
